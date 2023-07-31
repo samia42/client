@@ -1,144 +1,146 @@
-import { Button, Grid, IconButton, InputAdornment, TextField } from '@mui/material';
 import React, { useState } from 'react';
+import {
+    Grid,
+    Button,
+    IconButton,
+    InputAdornment,
+    TextField,
+} from '@mui/material';
 import { AddCircle, Delete } from '@mui/icons-material';
 
 const ColorContainer = () => {
+    const [rows, setRows] = useState(0);
+    const [cols, setCols] = useState(0);
+    const [matrix, setMatrix] = useState([]);
+    const [tones, setTones] = useState(Array(cols).fill(''));
+    const [colors, setColors] = useState(Array(rows).fill(''));
 
-    const [colors, setColors] = useState([{ name: '' }]);
-    const [tones, setTones] = useState([{ value: '', shades: [] }])
-
-
-    const addColor = () => {
-        const lastValue = colors[colors.length - 1].name
-        if (lastValue === '') {
-            alert('add Color first')
-            return
-        }
-        setColors([...colors, { name: '' }]);
+    const handleMatrixChange = (rowIndex, colIndex, file) => {
+        const updatedMatrix = [...matrix];
+        updatedMatrix[rowIndex][colIndex] = { colors: colors[rowIndex], tones: tones[colIndex], file: file };
+        setMatrix(updatedMatrix);
+        console.log('all data structured', matrix)
     };
 
-    const addTone = () => {
-        const shadesArr = colors.map(() => 'hey')
-        // console.log(shadesArr, 'arr')
-        // console.log(tones, 'tones')
-
-        const lastValue = tones[tones.length - 1].value
-        if (lastValue === '') {
-            alert('add Tone first')
-            return
-        }
-        setTones([...tones, { value: '', shades: [...shadesArr] }]);
-    };
-
-    const removeColor = (index) => {
-        const updatedColors = [...colors];
-        updatedColors.splice(index, 1);
-        setColors(updatedColors);
-    };
-
-    const removeTone = (index) => {
+    const handleToneChange = (colIndex, value) => {
         const updatedTones = [...tones];
-        updatedTones.splice(index, 1);
+        updatedTones[colIndex] = value;
         setTones(updatedTones);
     };
 
-    const handleColorNameChange = (index, event) => {
+    const handleColorChange = (rowIndex, value) => {
         const updatedColors = [...colors];
-        updatedColors[index].name = event.target.value;
+        updatedColors[rowIndex] = value;
         setColors(updatedColors);
     };
 
-    const handleToneChange = (index, event) => {
-        const updatedTones = [...tones];
-        updatedTones[index].value = event.target.value;
-        setTones(updatedTones);
+    const handleAddRow = () => {
+        const newRow = Array(cols).fill({ file: null, tone: '', color: '' });
+        setMatrix([...matrix, newRow]);
+        setColors([...colors, '']);
+        setRows(rows + 1);
     };
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        console.log(e.target.values)
-        addTone()
-    }
+
+    const handleDeleteRow = (rowIndex) => {
+        const updatedMatrix = [...matrix];
+        updatedMatrix.splice(rowIndex, 1);
+        setMatrix(updatedMatrix);
+        const updatedColors = [...colors];
+        updatedColors.splice(rowIndex, 1);
+        setColors(updatedColors);
+        setRows(rows - 1);
+    };
+
+    const handleAddColumn = () => {
+        const updatedMatrix = matrix.map((row) => [
+            ...row,
+            { file: null, tone: '', color: '' },
+        ]);
+        setMatrix(updatedMatrix);
+        setTones([...tones, '']);
+        setCols(cols + 1);
+    };
+
+    const handleDeleteColumn = (colIndex) => {
+        const updatedMatrix = matrix.map((row) => {
+            const newRow = [...row];
+            newRow.splice(colIndex, 1);
+            return newRow;
+        });
+        setMatrix(updatedMatrix);
+        const updatedTones = [...tones];
+        updatedTones.splice(colIndex, 1);
+        setTones(updatedTones);
+        setCols(cols - 1);
+    };
+
     return (
         <>
-            <form onSubmit={handleSubmit}>
 
-
-                <Grid container sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                    <Button sx={{ marginRight: '110px' }} onClick={addColor} startIcon={<AddCircle />}>
+            <Grid conatiner sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Button variant="outlined" onClick={handleAddColumn}>
+                        Add Tone
+                    </Button>
+                    <Button variant="outlined" onClick={handleAddRow} >
                         Add Color
                     </Button>
-                    {colors.map((color, colorIndex) => (
-                        <Grid item key={colorIndex}>
-                            <div style={{ display: 'flex', alignItems: 'center', margin: '10px', justifyContent: 'space-evenly', maxWidth: '200px' }}>
-                                <TextField
-                                    name='color'
-                                    required
-                                    size='small'
-                                    label="Color Name"
-                                    value={color.name}
-                                    onChange={(event) => handleColorNameChange(colorIndex, event)}
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton
-                                                    onClick={() => removeColor(colorIndex)}
-                                                    disabled={colors.length === 1}
-                                                >
-                                                    <Delete />
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
+                    {matrix.map((row, rowIndex) => (
+                        <div style={{ maxWidth: '200px', margin: '10px', }}>
+                            <TextField
+                                label={`Color ${rowIndex + 1}`}
+                                value={colors[rowIndex]}
+                                onChange={(event) => handleColorChange(rowIndex, event.target.value)}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton aria-label="delete" onClick={() => handleDeleteRow(rowIndex)}>
+                                                <Delete />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </div>
 
-                            </div>
-                        </Grid>
                     ))}
-                </Grid>
-                <Grid conatiner sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', flexDirection: 'column' }}>
-                    {tones.map((tone, toneIndex) => (
-                        <Grid item key={toneIndex}>
-                            <div key={toneIndex} style={{ display: 'flex', alignItems: 'center', margin: '10px', justifyContent: 'space-evenly' }}>
+                </div>
+                <div>
+                    {tones.map((tone, colIndex) => (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly' }}>
+                            <div key={colIndex} style={{ margin: '10px', maxWidth: '200px', }}>
                                 <TextField
-                                    required
-                                    name='tone'
-                                    size='small'
-                                    label={`Tone ${toneIndex + 1}`}
-                                    value={tone.value}
-                                    onChange={(event) => handleToneChange(toneIndex, event)}
+                                    label={`Tone ${colIndex + 1}`}
+                                    value={tone}
+                                    onChange={(event) => handleToneChange(colIndex, event.target.value)}
                                     InputProps={{
                                         endAdornment: (
                                             <InputAdornment position="end">
-                                                <IconButton
-                                                    onClick={() => removeTone(toneIndex)}
-                                                    disabled={tones.length === 1}
-                                                >
+                                                <IconButton aria-label="delete" onClick={() => handleDeleteColumn(colIndex)}>
                                                     <Delete />
                                                 </IconButton>
                                             </InputAdornment>
                                         ),
                                     }}
                                 />
-                                {colors.map((i) => <input type='file' name={i + 'shade'} required />)}
                             </div>
-                            {/* {tone?.shades?.map((shade, shadeIndex) => (
-                            <Grid item key={shadeIndex}>
-                                <div key={shadeIndex} >
-                                    {shade.name}
-                                </div>
+                            <Grid item key={colIndex}>
+                                {colors.map((cell, index) => (
+                                    <input
+                                        key={index}
+                                        type="file"
+                                        onChange={(event) => handleMatrixChange(colIndex, index, event.target.files[0])}
+                                    />
+                                ))}
                             </Grid>
-                        ))} */}
-                        </Grid>
+                        </div>
                     ))}
 
 
-                </Grid>
-                <Button startIcon={<AddCircle />} type='submit'>
-                    Add Tone
-                </Button>
-            </form>
+                </div>
+            </Grid >
         </>
-    )
-}
+    );
+};
 
-export default ColorContainer
+export default ColorContainer;
